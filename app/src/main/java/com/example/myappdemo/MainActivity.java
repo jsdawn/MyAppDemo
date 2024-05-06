@@ -1,6 +1,9 @@
 package com.example.myappdemo;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -24,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -32,19 +36,19 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        //----------------------  测试按钮
         Button btnEnd = findViewById(R.id.button);
         btnEnd.setOnClickListener(v -> {
             Log.d("setOnClickListener", "setOnClickListener");
-            Integer.parseInt("wyh");
-
+            // Integer.parseInt("ssss");
+            openSystemSettings();
         });
+        //----------------------
 
-        Log.d("KeepServices", "MainActivity onCreate");
-        Intent intent = new Intent(this, KeepServices.class);
-        startService(intent);
-
-        Intent intent2 = new Intent(this, KeepOne.class);
-        startService(intent2);
+        //----------------------  注册keep守护服务
+        Intent keepIntent = new Intent(this, KeepOne.class);
+        startService(keepIntent);
+        //----------------------
     }
 
     @Override
@@ -64,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Log.d("onResume", "应用在后台");
         }
+        ServiceMangerUtils.isDebugMode = false;
     }
 
     @Override
@@ -118,19 +123,28 @@ public class MainActivity extends AppCompatActivity {
      * @return
      */
     public boolean isAppOnForeground() {
-        ActivityManager activityManager = (ActivityManager) getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager activityManager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
         String packageName = getApplicationContext().getPackageName();
         // 获取Android设备中所有正在运行的App
-        List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
-        if (appProcesses == null) return false;
-        for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
+        List<ActivityManager.RunningAppProcessInfo> runningProcesses = activityManager.getRunningAppProcesses();
+        if (runningProcesses == null) return false;
+        for (ActivityManager.RunningAppProcessInfo processInfo : runningProcesses) {
             // The name of the process that this object is associated with.
-            if (appProcess.processName.equals(packageName) && appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+            if (processInfo.processName.equals(packageName) && processInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
                 return true;
             }
         }
         return false;
     }
 
+    public void openSystemSettings() {
+        Intent intent = new Intent("/");
+        ComponentName cm = new ComponentName("com.android.settings", "com.android.settings.Settings");
+        intent.setComponent(cm);
+        intent.setAction("android.intent.action.VIEW");
+        startActivity(intent);
+        ServiceMangerUtils.isDebugMode = true;
+        Log.d("KeepServices1", "hhh:" + ServiceMangerUtils.isDebugMode);
+    }
 
 }

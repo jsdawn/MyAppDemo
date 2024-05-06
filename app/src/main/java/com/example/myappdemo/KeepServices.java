@@ -39,16 +39,17 @@ public class KeepServices extends Service {
         return instance;
     }
 
+    @SuppressLint("ForegroundServiceType")
     @Override
     public void onCreate() {
         super.onCreate();
         context = this;
         instance = this;
+
 //        smdtManager = SmdtManager.create(this);
 //        if (smdtManager != null) {
 //            smdtManager.smdtSetGpioDirection(2, 0, 1);
 //        }
-
 
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         //创建NotificationChannel
@@ -58,7 +59,6 @@ public class KeepServices extends Service {
         }
 
         startForeground(1, getNotification());
-        Log.d("KeepServices", "startForeground");
     }
 
     private Notification getNotification() {
@@ -74,7 +74,7 @@ public class KeepServices extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (instance != null && this != instance) {
             // 如果已经有一个实例在运行，则停止当前服务
-            Log.d("KeepServices", "Another instance is already running. Stopping service...");
+            Log.d("KeepServices", "KeepServices instance is already running. Stopping service...");
             stopSelf();
         }
 
@@ -83,10 +83,14 @@ public class KeepServices extends Service {
             public void run() {
                 while (true) {
                     try {
-                        // Log.e("GPIO:","0");
-                        // Log.d("KeepServices","====保活服务===数据支持===="+Keep());
-                        if (!Keep()) {
-                            // Log.d("KeepServices","====拉起===com.qtapp");
+                        /*if (smdtManager != null && smdtManager.smdtReadExtrnalGpioValue(2) == 0) {
+                            //  Log.e("GPIO:","1");
+                        } else {
+                        }*/
+                        // Log.d("KeepServices","====保活服务===数据支持===="+Keep()); !true = false
+                        Log.d("KeepServices1", "" + ServiceMangerUtils.getDebugMode());
+                        if (!Keep() && !ServiceMangerUtils.getDebugMode()) {
+                            Log.d("KeepServices", "====拉起===com.qtapp");
                             openAppWithPackageName(keepPackagename);//启动应用
                         }
                         Thread.sleep(2000);
@@ -98,20 +102,10 @@ public class KeepServices extends Service {
             }
         }).start();
 
-//        startServiceOne();
-
         return super.onStartCommand(intent, flags, startId);
 //        return START_REDELIVER_INTENT;
     }
 
-    private void startServiceOne() {
-        boolean b = ServiceMangerUtils.isServiceWorked(KeepServices.this, "KeepOne");
-        if (!b) {
-            Intent service = new Intent(KeepServices.this, KeepOne.class);
-            startService(service);
-            Log.d("KeepServices", "Start ServiceOne");
-        }
-    }
 
     @Nullable
     @Override
@@ -132,8 +126,11 @@ public class KeepServices extends Service {
         List<ActivityManager.RunningAppProcessInfo> runningProcesses = am.getRunningAppProcesses();
 
         for (ActivityManager.RunningAppProcessInfo processInfo : runningProcesses) {
+            // 遍历运行中进程
             if (processInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+                // 获取正确前台顶部运行的进程
                 for (String activeProcess : processInfo.pkgList) {
+                    // 遍历该进程加载的包
                     if (activeProcess.equals(keepPackagename)) {
                         // 应用程序正在运行
                         return true;
@@ -141,7 +138,7 @@ public class KeepServices extends Service {
                 }
             }
         }
-// 应用程序不在运行
+        // 应用程序不在运行
         return false;
     }
 
