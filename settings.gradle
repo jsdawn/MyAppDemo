@@ -9,6 +9,8 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        // Easy to use package repository for Git
+        maven { url 'https://jitpack.io' }
     }
 }
 dependencyResolutionManagement {
@@ -16,6 +18,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // Easy to use package repository for Git
+        maven { url 'https://jitpack.io' }
     }
 }
 

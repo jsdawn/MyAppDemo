@@ -18,9 +18,23 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.october.lib.logger.LogLevel;
+import com.october.lib.logger.LogUtils;
+import com.october.lib.logger.Logger;
+import com.october.lib.logger.compress.BaseLogCompressStrategy;
+import com.october.lib.logger.compress.ZipLogCompressStrategy;
+import com.october.lib.logger.disk.BaseLogDiskStrategy;
+import com.october.lib.logger.disk.TimeLogDiskStrategyImpl;
+import com.october.lib.logger.format.LogTxtDefaultFormatStrategy;
+import com.october.lib.logger.print.BaseLogTxtPrinter;
+import com.october.lib.logger.print.LogTxtDefaultPrinter;
+import com.october.lib.logger.print.LogcatDefaultPrinter;
+import com.october.lib.logger.crash.DefaultCrashStrategyImpl;
+
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private final String TAG = "MainActivity";
     private Context mContext;
 
     @Override
@@ -39,16 +53,21 @@ public class MainActivity extends AppCompatActivity {
         //----------------------  测试按钮
         Button btnEnd = findViewById(R.id.button);
         btnEnd.setOnClickListener(v -> {
-            Log.d("setOnClickListener", "setOnClickListener");
-            // Integer.parseInt("ssss");
-            openSystemSettings();
+            LogUtils.w(TAG, "setOnClickListener warning");
+//            Integer.parseInt("ssss");
+            // openSystemSettings();
         });
         //----------------------
 
         //----------------------  注册keep守护服务
-        Intent keepIntent = new Intent(this, KeepOne.class);
-        startService(keepIntent);
+        /*Intent keepIntent = new Intent(this, KeepOne.class);
+        startService(keepIntent);*/
         //----------------------
+
+        //----------------------- 初始化日志
+        initLogger();
+        //-----------------------
+
     }
 
     @Override
@@ -93,27 +112,6 @@ public class MainActivity extends AppCompatActivity {
             // app进入后台，调用打开第三方应用方法（新打开，多次会打开多个）
             // Intent intent = mContext.getPackageManager().getLaunchIntentForPackage("com.example.myappdemo");
             // mContext.startActivity(intent);
-
-//            Intent intent = new Intent(mContext, MainActivity.class);
-//            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP); // You need this if starting
-//            //  the activity from a service
-//            intent.setAction(Intent.ACTION_MAIN);
-//            intent.addCategory(Intent.CATEGORY_LAUNCHER);
-//            startActivity(intent);
-
-//            PackageManager packageManager = mContext.getPackageManager();
-//            Intent intent = packageManager.getLaunchIntentForPackage(mContext.getPackageName());
-//            if (intent != null) {
-//                //模拟点击桌面图标的启动参数
-//                intent.setPackage(null);
-//                // intent.setSourceBounds(new Rect(804,378, 1068, 657));
-//                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-//                mContext.startActivity(intent);
-//            }
-
-//            Intent intent = new Intent(mContext, MainActivity.class);
-//            intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-//            startActivity(intent);
         }
     }
 
@@ -145,6 +143,22 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
         ServiceMangerUtils.isDebugMode = true;
         Log.d("KeepServices1", "hhh:" + ServiceMangerUtils.isDebugMode);
+    }
+
+    // 初始化日志
+    public void initLogger() {
+        // 设置磁盘策略：按时间管理日志
+        BaseLogDiskStrategy diskStrategy = new TimeLogDiskStrategyImpl();
+        // 设置压缩策略：创建新文件时，压缩旧文件
+        diskStrategy.setLogCompressStrategy(new ZipLogCompressStrategy());
+        // 设置打印日志到磁盘 defaultPath: storage/emulated/0/Android/data/packageName/files/log
+        BaseLogTxtPrinter logTxtPrinter = new LogTxtDefaultPrinter(true, LogLevel.V, new LogTxtDefaultFormatStrategy(), diskStrategy);
+
+        Logger logger = new Logger.Builder().setLogcatPrinter(new LogcatDefaultPrinter())   //设置 Logcat printer
+                .setLogTxtPrinter(logTxtPrinter)   //设置 LogTxt printer
+                .setCrashStrategy(new DefaultCrashStrategyImpl()) //设置 crash ,捕获异常日志
+                .build();
+        LogUtils.setLogger(logger);
     }
 
 }

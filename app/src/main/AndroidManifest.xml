@@ -24,7 +24,8 @@
             </intent-filter>
         </activity>
 
-        <receiver
+        <!-- 开机启动 -->
+        <!--<receiver
             android:name=".StartupOnBootUpReceiver"
             android:exported="true"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
@@ -32,19 +33,19 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-        </receiver>
+        </receiver>-->
 
-        <service
+        <!--<service
             android:name=".KeepServices"
             android:enabled="true"
             android:exported="true">
             <intent-filter android:priority="1000">
                 <action android:name="KeepServices" />
             </intent-filter>
-        </service>
+        </service>-->
 
         <!-- android:process=":remote" -另起进程，当app闪退拉起KeepServices -->
-        <service
+        <!--<service
             android:name=".KeepOne"
             android:enabled="true"
             android:exported="true"
@@ -52,7 +53,7 @@
             <intent-filter android:priority="1000">
                 <action android:name="KeepOne" />
             </intent-filter>
-        </service>
+        </service>-->
 
     </application>
 
