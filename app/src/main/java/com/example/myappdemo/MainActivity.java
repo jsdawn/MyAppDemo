@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.serialport.SerialPort;
 import android.util.Log;
 import android.widget.Button;
 
@@ -30,6 +31,7 @@ import com.october.lib.logger.print.BaseLogTxtPrinter;
 import com.october.lib.logger.print.LogTxtDefaultPrinter;
 import com.october.lib.logger.print.LogcatDefaultPrinter;
 import com.october.lib.logger.crash.DefaultCrashStrategyImpl;
+import com.vi.vioserial.NormalSerial;
 
 import java.util.List;
 
@@ -56,6 +58,12 @@ public class MainActivity extends AppCompatActivity {
             LogUtils.w(TAG, "setOnClickListener warning");
 //            Integer.parseInt("ssss");
             // openSystemSettings();
+
+
+            // 加了这里导致app崩溃，不加则无权限
+            SerialPort.setSuPath("/system/xbin/su");
+            // 打开串口
+            NormalSerial.instance().open("/dev/ttyXRUSB2", 9600);
         });
         //----------------------
 
