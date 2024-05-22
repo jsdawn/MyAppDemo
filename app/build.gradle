@@ -38,5 +38,5 @@ dependencies {
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
     implementation "com.github.oi-october:OTLogger:1.2.0-Bate"
-    implementation 'com.github.Acccord:AndroidSerialPort:1.5.0'
+    implementation "com.github.Acccord:AndroidSerialPort:1.5.0"
 }

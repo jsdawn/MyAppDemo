@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.serialport.SerialPort;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,13 +32,19 @@ import com.october.lib.logger.print.BaseLogTxtPrinter;
 import com.october.lib.logger.print.LogTxtDefaultPrinter;
 import com.october.lib.logger.print.LogcatDefaultPrinter;
 import com.october.lib.logger.crash.DefaultCrashStrategyImpl;
+import com.vi.vioserial.BaseSerial;
 import com.vi.vioserial.NormalSerial;
+import com.vi.vioserial.listener.OnNormalDataListener;
+import com.vi.vioserial.listener.OnSerialDataListener;
+import com.vi.vioserial.util.SerialDataUtils;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
     private Context mContext;
+    private SerialHelper mSerialHelper;
+    private Boolean isOpened = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,18 +60,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //----------------------  测试按钮
-        Button btnEnd = findViewById(R.id.button);
-        btnEnd.setOnClickListener(v -> {
-            LogUtils.w(TAG, "setOnClickListener warning");
-//            Integer.parseInt("ssss");
-            // openSystemSettings();
-
-
-            // 加了这里导致app崩溃，不加则无权限
-            SerialPort.setSuPath("/system/xbin/su");
-            // 打开串口
-            NormalSerial.instance().open("/dev/ttyXRUSB2", 9600);
-        });
+        bindViewEvent();
         //----------------------
 
         //----------------------  注册keep守护服务
@@ -123,6 +119,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void bindViewEvent() {
+        mSerialHelper = new SerialHelper();
+
+        Button btnEnd = findViewById(R.id.button);
+        btnEnd.setOnClickListener(v -> {
+            LogUtils.w(TAG, "setOnClickListener warning");
+            // Integer.parseInt("ssss");
+            // openSystemSettings();
+
+            if (isOpened) {
+                mSerialHelper.close();
+                isOpened = false;
+            } else {
+                isOpened = mSerialHelper.open();
+            }
+
+        });
+    }
+
     /**
      * 判断app是否处于前台
      *
@@ -168,5 +183,6 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         LogUtils.setLogger(logger);
     }
+
 
 }
