@@ -1,8 +1,7 @@
-package com.example.myappdemo;
+package com.example.myappdemo.utils;
 
 import android.app.ActivityManager;
 import android.content.Context;
-import android.util.Log;
 
 import java.util.ArrayList;
 

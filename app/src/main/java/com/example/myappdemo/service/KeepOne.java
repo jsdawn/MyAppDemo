@@ -1,4 +1,4 @@
-package com.example.myappdemo;
+package com.example.myappdemo.service;
 
 import android.app.Service;
 import android.content.Intent;
@@ -6,6 +6,8 @@ import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+
+import com.example.myappdemo.utils.ServiceMangerUtils;
 
 public class KeepOne extends Service {
 
@@ -53,7 +55,7 @@ public class KeepOne extends Service {
     }
 
     private void startServiceTwo() {
-        boolean b = ServiceMangerUtils.isServiceWorked(KeepOne.this, "com.example.myappdemo.KeepServices");
+        boolean b = ServiceMangerUtils.isServiceWorked(KeepOne.this, "com.example.myappdemo.service.KeepServices");
         if (!b) {
             Log.d("KeepOne", "没有keep服务");
             Intent service = new Intent(KeepOne.this, KeepServices.class);

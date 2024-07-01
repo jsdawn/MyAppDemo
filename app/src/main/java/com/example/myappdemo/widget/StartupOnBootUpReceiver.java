@@ -1,9 +1,11 @@
-package com.example.myappdemo;
+package com.example.myappdemo.widget;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+
+import com.example.myappdemo.ui.MainActivity;
 
 public class StartupOnBootUpReceiver extends BroadcastReceiver {
 

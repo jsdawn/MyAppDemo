@@ -39,4 +39,6 @@ dependencies {
     androidTestImplementation libs.espresso.core
     implementation "com.github.oi-october:OTLogger:1.2.0-Bate"
     implementation "com.github.Acccord:AndroidSerialPort:1.5.0"
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.6.0'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.6.0'
 }

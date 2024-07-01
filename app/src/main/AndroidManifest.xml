@@ -14,9 +14,10 @@
         android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.GET_TASKS" />
-
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
+        android:name=".app.MainApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -27,45 +28,17 @@
         android:theme="@style/Theme.MyAppDemo"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
-            android:exported="true">
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:label="@string/title_activity_main"
+            android:theme="@style/Theme.MyAppDemo"
+            android:windowSoftInputMode="adjustResize|stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- 开机启动 -->
-        <!--<receiver
-            android:name=".StartupOnBootUpReceiver"
-            android:exported="true"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </receiver>-->
-
-        <!--<service
-            android:name=".KeepServices"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter android:priority="1000">
-                <action android:name="KeepServices" />
-            </intent-filter>
-        </service>-->
-
-        <!-- android:process=":remote" -另起进程，当app闪退拉起KeepServices -->
-        <!--<service
-            android:name=".KeepOne"
-            android:enabled="true"
-            android:exported="true"
-            android:process=":remote">
-            <intent-filter android:priority="1000">
-                <action android:name="KeepOne" />
-            </intent-filter>
-        </service>-->
 
     </application>
 

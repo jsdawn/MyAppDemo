@@ -1,4 +1,4 @@
-package com.example.myappdemo;
+package com.example.myappdemo.service;
 
 
 import android.annotation.SuppressLint;
@@ -20,6 +20,9 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+
+import com.example.myappdemo.R;
+import com.example.myappdemo.utils.ServiceMangerUtils;
 
 import java.util.List;
 
