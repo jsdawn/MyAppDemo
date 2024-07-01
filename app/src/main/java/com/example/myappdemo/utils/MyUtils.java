@@ -47,7 +47,6 @@ public class MyUtils {
         intent.setAction("android.intent.action.VIEW");
         startActivity(context, intent, null);
         ServiceMangerUtils.isDebugMode = true;
-        Log.d("KeepServices1", "hhh:" + ServiceMangerUtils.isDebugMode);
     }
 
     // 是否处于前台

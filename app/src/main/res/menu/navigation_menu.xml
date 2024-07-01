@@ -2,10 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group>
         <item
-            android:id="@+id/nav_item1"
-            android:title="菜单一" />
+            android:id="@+id/nav_login"
+            android:title="登录" />
         <item
-            android:id="@+id/nav_item2"
-            android:title="菜单二" />
+            android:id="@+id/nav_welcome"
+            android:title="欢迎" />
+        <item
+            android:id="@+id/nav_audio"
+            android:title="音频录制" />
     </group>
 </menu>

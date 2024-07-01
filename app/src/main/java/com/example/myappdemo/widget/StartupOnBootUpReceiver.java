@@ -3,16 +3,16 @@ package com.example.myappdemo.widget;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import com.example.myappdemo.ui.MainActivity;
+import com.october.lib.logger.LogUtils;
 
 public class StartupOnBootUpReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        Log.d("StartupOnBootUpReceiver: ", " " + intent.getAction());
+        LogUtils.d("StartupOnBootUpReceiver: ", " " + intent.getAction());
 
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
             Intent activityIntent = new Intent(context, MainActivity.class);

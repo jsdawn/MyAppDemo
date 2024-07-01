@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.toolbar);
         navigationView = findViewById(R.id.navigation_view);
         // fragment宿主，导航控制器
-        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentHostView);
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_host_view);
         if (navHostFragment != null) {
             navController = navHostFragment.getNavController();
         }
@@ -47,12 +47,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         navigationView.setNavigationItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.nav_item1) {
+            if (item.getItemId() == R.id.nav_login) {
                 navController.navigate(R.id.loginFragment);
-            } else if (item.getItemId() == R.id.nav_item2) {
+            } else if (item.getItemId() == R.id.nav_welcome) {
                 Bundle args = new Bundle();
                 args.putString("title", "菜单跳转");
                 navController.navigate(R.id.welcomeFragment, args);
+            } else if (item.getItemId() == R.id.nav_audio) {
+                navController.navigate(R.id.recorderAudio);
             }
             drawerLayout.close();
             return true;
