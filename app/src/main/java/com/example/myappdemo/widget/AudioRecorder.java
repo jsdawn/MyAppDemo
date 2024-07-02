@@ -18,7 +18,7 @@ import java.util.Date;
 import java.util.List;
 
 public class AudioRecorder {
-    public String TAG = "RecorderAudio";
+    public String TAG = "AudioRecorder";
     private MediaRecorder mediaRecorder;
     private File outFile;
     private String filename;
@@ -78,10 +78,15 @@ public class AudioRecorder {
     }
 
     public void start() {
-        if (mediaRecorder == null) {
-            mediaRecorder = getRecorder();
+        if (mediaRecorder != null) {
+            // 重置
+            mediaRecorder.stop();
+            mediaRecorder.release();
+            mediaRecorder = null;
         }
+
         try {
+            mediaRecorder = getRecorder();
             // 准备录制，初始化 MediaRecorder 的各种状态，并根据配置的信息创建一个 MediaCodec 对象。
             mediaRecorder.prepare();
             // 开始录制，开始真正的录音工作。它会启动一个循环来从 MediaCodec 对象中取出编码后的音频数据，然后写入到指定的文件中。
