@@ -41,6 +41,12 @@ public class RecorderAudio extends Fragment {
         endBtn.setOnClickListener(v -> {
             audioRecorder.stop();
         });
+
+        Button delBtn = view.findViewById(R.id.del);
+        delBtn.setOnClickListener(v -> {
+            audioRecorder.deleteLastFile();
+        });
+
         return view;
     }
 }

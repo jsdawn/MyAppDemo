@@ -72,6 +72,7 @@ public class AudioRecorder {
 
         if (!noPermissions.isEmpty()) {
             ActivityCompat.requestPermissions(activity, noPermissions.toArray(new String[noPermissions.size()]), 101);
+            LogUtils.d("AudioRecorder", "noPermissions: " + noPermissions);
             return false;
         }
         return true;
@@ -109,7 +110,17 @@ public class AudioRecorder {
         mediaRecorder = null;
 
         if (outFile.exists()) {
-            outFile.renameTo(new File(outDir, filename + ".amr"));
+            File renameFile = new File(outDir, filename + ".amr");
+            boolean bool = outFile.renameTo(renameFile);
+            if (bool) {
+                outFile = renameFile;
+            }
+        }
+    }
+
+    public void deleteLastFile() {
+        if (outFile != null && outFile.exists()) {
+            outFile.delete();
         }
     }
 }
