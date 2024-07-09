@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragment_navigation"
-    app:startDestination="@id/recorderAudio">
+    app:startDestination="@id/audioMonitor">
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.myappdemo.ui.home.LoginFragment"
@@ -23,4 +23,9 @@
         android:name="com.example.myappdemo.ui.recorder.RecorderAudio"
         android:label="recorder_audio"
         tools:layout="@layout/recorder_audio" />
+    <fragment
+        android:id="@+id/audioMonitor"
+        android:name="com.example.myappdemo.ui.monitor.AudioMonitor"
+        android:label="monitor_audio"
+        tools:layout="@layout/monitor_audio" />
 </navigation>
