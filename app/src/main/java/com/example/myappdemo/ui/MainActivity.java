@@ -1,5 +1,6 @@
 package com.example.myappdemo.ui;
 
+import android.app.smdt.SmdtManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -16,8 +17,11 @@ import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.myappdemo.R;
+import com.example.myappdemo.utils.SmdtUtils;
 import com.google.android.material.navigation.NavigationView;
 import com.october.lib.logger.LogUtils;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
@@ -31,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         LogUtils.d("MainActivity", "onCreate MainActivity");
+
+        SmdtUtils.installHandler(this);
 
         drawerLayout = findViewById(R.id.drawerLayout);
         toolbar = findViewById(R.id.toolbar);
@@ -61,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
             drawerLayout.close();
             return true;
         });
+
+
     }
 
 
