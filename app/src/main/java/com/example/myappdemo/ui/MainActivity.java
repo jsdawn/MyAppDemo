@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         LogUtils.d("MainActivity", "onCreate MainActivity");
 
-        SmdtUtils.installHandler(this);
+//        SmdtUtils.installHandler(this);
 
         drawerLayout = findViewById(R.id.drawerLayout);
         toolbar = findViewById(R.id.toolbar);

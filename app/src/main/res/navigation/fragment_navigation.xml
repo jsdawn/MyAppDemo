@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragment_navigation"
-    app:startDestination="@id/audioMonitor">
+    app:startDestination="@id/recorderCamera">
+
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.myappdemo.ui.home.LoginFragment"
@@ -28,4 +29,9 @@
         android:name="com.example.myappdemo.ui.monitor.AudioMonitor"
         android:label="monitor_audio"
         tools:layout="@layout/monitor_audio" />
+    <fragment
+        android:id="@+id/recorderCamera"
+        android:name="com.example.myappdemo.ui.recorder.RecorderCamera"
+        android:label="recorder_camera"
+        tools:layout="@layout/recorder_camera" />
 </navigation>
