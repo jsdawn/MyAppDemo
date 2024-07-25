@@ -89,12 +89,7 @@ public class RecorderCamera extends Fragment {
         }
 
         view.findViewById(R.id.image_capture_button).setOnClickListener(v -> {
-//            takePhoto();
-            try {
-                createVideoFilename();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            takePhoto();
         });
 
         videoCaptureButton = view.findViewById(R.id.video_capture_button);
@@ -234,33 +229,34 @@ public class RecorderCamera extends Fragment {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String filename = "JPEG_" + timeStamp + "_";
         File storageDir = getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        return File.createTempFile(filename,  /* 前缀 */
+        return File.createTempFile(
+                filename,  /* 前缀 */
                 ".jpg",         /* 后缀 */
                 storageDir      /* 目录 */);
     }
 
     private File createVideoFilename() throws IOException {
-        String usbPath = getUsbPath();
-        if (usbPath == null) {
-            Log.d(TAG, "无USB路径");
-            return null;
-        }
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String filename = "MP4_" + timeStamp + "_";
-//        File storageDir = getActivity().getExternalFilesDir(Environment.DIRECTORY_MOVIES);
-        File storageDir = new File(usbPath + File.separator + "videoRecorder");
+        File storageDir = getActivity().getExternalFilesDir(Environment.DIRECTORY_MOVIES);
 
-        Log.d(TAG, storageDir.getAbsolutePath());
+        String usbPath = getUsbExternalPath();
+        if (usbPath != null) {
+            // 有u盘则使用u盘文件夹
+            storageDir = new File(usbPath + File.separator + "videoRecorder");
+        }
 
         if (!storageDir.exists()) {
             boolean bool = storageDir.mkdirs();
-            Log.d(TAG, "创建目录：" + bool);
+            if (!bool) {
+                return null;
+            }
         }
-//        return File.createTempFile(
-//                filename,  /* 前缀 */
-//                ".mp4",         /* 后缀 */
-//                storageDir      /* 目录 */);
-        return null;
+
+        return File.createTempFile(
+                filename,  /* 前缀 */
+                ".mp4",         /* 后缀 */
+                storageDir      /* 目录 */);
     }
 
     public static boolean checkPermission(Activity activity, @NonNull String[] permissions) {
@@ -285,11 +281,16 @@ public class RecorderCamera extends Fragment {
             Method getVolumePathsMethod = StorageManager.class.getMethod("getVolumePaths", null);
             String[] paths = (String[]) getVolumePathsMethod.invoke(sm, null);
             return paths.length <= 1 ? null : paths[1];
-
         } catch (Exception e) {
             Log.e(TAG, "---getUsbPath() failed" + e);
         }
         return null;
+    }
+
+    public String getUsbExternalPath() {
+        File[] paths = ContextCompat.getExternalFilesDirs(getActivity(), null);
+        // /storage/00D6-4AAA/Android/data/com.example.xxx/files
+        return paths.length <= 1 ? null : paths[1].getAbsolutePath();
     }
 
 
