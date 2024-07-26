@@ -2,12 +2,15 @@ package com.example.myappdemo.utils;
 
 import static androidx.core.content.ContextCompat.startActivity;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
+import android.content.pm.PackageManager;
 
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import com.october.lib.logger.LogLevel;
 import com.october.lib.logger.LogUtils;
 import com.october.lib.logger.Logger;
@@ -20,9 +23,12 @@ import com.october.lib.logger.print.BaseLogTxtPrinter;
 import com.october.lib.logger.print.LogTxtDefaultPrinter;
 import com.october.lib.logger.print.LogcatDefaultPrinter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MyUtils {
+    private final String TAG = MyUtils.class.getSimpleName();
+
     // 初始化日志
     public static void initLogger() {
         // 设置磁盘策略：按时间管理日志
@@ -64,4 +70,22 @@ public class MyUtils {
         }
         return false;
     }
+
+    public static boolean checkPermission(Activity activity, @NonNull String[] permissions) {
+        List<String> noPermissions = new ArrayList<>();
+        for (String permission : permissions) {
+            // 检查权限
+            if (ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
+                noPermissions.add(permission);
+            }
+        }
+
+        if (!noPermissions.isEmpty()) {
+            LogUtils.d("MyUtils", "noPermissions: " + noPermissions);
+            return false;
+        }
+        return true;
+    }
+
+
 }

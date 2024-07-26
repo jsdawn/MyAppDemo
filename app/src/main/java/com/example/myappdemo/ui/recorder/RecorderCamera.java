@@ -38,6 +38,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.myappdemo.R;
+import com.example.myappdemo.utils.ICallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.october.lib.logger.LogUtils;
 
@@ -64,6 +65,7 @@ public class RecorderCamera extends Fragment {
     Button videoCaptureButton;
     String[] permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE};
     ExecutorService cameraExecutor;
+    Preview previewCapture;
     ImageCapture imageCapture;
     VideoCapture videoCapture;
     Boolean isRecording = false;
@@ -87,6 +89,10 @@ public class RecorderCamera extends Fragment {
         } else {
             getLauncher(this::startCamera).launch(permissions);
         }
+
+        view.findViewById(R.id.preview_button).setOnClickListener(v -> {
+            previewCapture.setSurfaceProvider(viewFinder.getSurfaceProvider());
+        });
 
         view.findViewById(R.id.image_capture_button).setOnClickListener(v -> {
             takePhoto();
@@ -149,12 +155,6 @@ public class RecorderCamera extends Fragment {
         }
 
 
-        String name = "CameraX-recording-" + System.currentTimeMillis() + ".mp4";
-
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
-        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4");
-
         File file = null;
         try {
             file = createVideoFilename();
@@ -197,8 +197,7 @@ public class RecorderCamera extends Fragment {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
 
                 // 获取preview配置，并关联view
-                Preview preview = new Preview.Builder().build();
-                preview.setSurfaceProvider(viewFinder.getSurfaceProvider());
+                previewCapture = new Preview.Builder().build();
 
                 // 获取imageCapture配置
                 imageCapture = new ImageCapture.Builder().build();
@@ -214,7 +213,8 @@ public class RecorderCamera extends Fragment {
                 try {
                     cameraProvider.unbindAll();
                     // 将 cameraSelector 和预览对象绑定到 cameraProvider
-                    cameraProvider.bindToLifecycle(getActivity(), cameraSelector, preview, videoCapture);
+                    cameraProvider.bindToLifecycle(getActivity(), cameraSelector, previewCapture, videoCapture);
+
                 } catch (Exception e) {
                     Log.e(TAG, "CameraProvider Use case binding failed", e);
                 }
@@ -294,12 +294,8 @@ public class RecorderCamera extends Fragment {
     }
 
 
-    public interface Callback {
-        void call();
-    }
-
     // 申请权限回调
-    public ActivityResultLauncher<String[]> getLauncher(Callback callback) {
+    public ActivityResultLauncher<String[]> getLauncher(ICallback callback) {
         ActivityResultLauncher<String[]> launcher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
             Log.d(TAG, result.toString());
             boolean isPermisOk = true;
