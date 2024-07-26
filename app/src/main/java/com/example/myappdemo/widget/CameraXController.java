@@ -9,11 +9,14 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
 import androidx.camera.core.VideoCapture;
 import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
@@ -33,7 +36,10 @@ import java.util.concurrent.Executors;
 public class CameraXController {
     final String TAG = CameraXController.class.getSimpleName();
     Context mContext;
-    String[] permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    public final static String[] PERMISSIONS = new String[]{
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
     ExecutorService cameraExecutor;
     Preview previewCapture;
     ImageCapture imageCapture;
@@ -45,9 +51,13 @@ public class CameraXController {
         mContext = context;
     }
 
-    public void setupCamera() {
+    public void setupCamera(Preview.SurfaceProvider surfaceProvider) {
+        releseAll();
+        // 创建单线程，仅供用例使用
+        cameraExecutor = Executors.newSingleThreadExecutor();
         // 创建 ProcessCameraProvider 的实例
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(mContext);
+
         // cameraProviderFuture 监听器
         cameraProviderFuture.addListener(() -> {
             try {
@@ -55,6 +65,7 @@ public class CameraXController {
 
                 // 获取preview配置，并关联view
                 previewCapture = new Preview.Builder().build();
+                previewCapture.setSurfaceProvider(surfaceProvider);
 
                 // 获取imageCapture配置
                 imageCapture = new ImageCapture.Builder().build();
@@ -72,13 +83,16 @@ public class CameraXController {
                         .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
                         .build();
 
-                cameraExecutor = Executors.newSingleThreadExecutor();
 
                 try {
                     cameraProvider.unbindAll();
                     // 将 cameraSelector 和预览对象绑定到 cameraProvider
-                    cameraProvider.bindToLifecycle((LifecycleOwner) mContext,
-                            cameraSelector, previewCapture, imageCapture, videoCapture);
+                    Camera camera = cameraProvider.bindToLifecycle(
+                            (LifecycleOwner) mContext,
+                            cameraSelector,
+                            imageCapture,
+                            videoCapture,
+                            previewCapture);
 
                 } catch (Exception e) {
                     Log.e(TAG, "CameraProvider Use case binding failed", e);
@@ -87,7 +101,7 @@ public class CameraXController {
             } catch (ExecutionException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }, cameraExecutor);
+        }, ContextCompat.getMainExecutor(mContext));
     }
 
     @SuppressLint("MissingPermission")
@@ -123,11 +137,43 @@ public class CameraXController {
         isRecording = true;
     }
 
+    public boolean getRecordingState() {
+        return isRecording;
+    }
+
     public void stopRecording() {
         if (videoCapture == null) {
             return;
         }
         videoCapture.stopRecording();
+    }
+
+    public void takePhoto() {
+        if (imageCapture == null) {
+            return;
+        }
+
+        File outFile = createImageFile(mContext);
+        if (outFile == null) {
+            return;
+        }
+        ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(outFile).build();
+
+        imageCapture.takePicture(outputFileOptions,
+                cameraExecutor,
+                new ImageCapture.OnImageSavedCallback() {
+                    @Override
+                    public void onImageSaved(ImageCapture.OutputFileResults output) {
+                        String msg = "Photo capture succeeded: " + output.getSavedUri();
+                        Log.d(TAG, msg);
+
+                    }
+
+                    @Override
+                    public void onError(ImageCaptureException error) {
+                        Log.e(TAG, "Photo capture failed: " + error.getMessage(), error);
+                    }
+                });
     }
 
     public void releseAll() {
@@ -142,6 +188,21 @@ public class CameraXController {
             cameraProvider.shutdown();
             cameraProvider = null;
         }
+    }
+
+    private File createImageFile(Context context) {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String filename = "JPEG_" + timeStamp + "_";
+        File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        try {
+            return File.createTempFile(
+                    filename,  /* 前缀 */
+                    ".jpg",         /* 后缀 */
+                    storageDir      /* 目录 */);
+
+        } catch (IOException ignored) {
+        }
+        return null;
     }
 
     private File createVideoFilename(Context context) {
