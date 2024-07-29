@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.CameraState;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
@@ -19,9 +20,11 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Observer;
 
 import com.example.myappdemo.utils.ICallback;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.october.lib.logger.LogUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,6 +96,17 @@ public class CameraXController {
                             imageCapture,
                             videoCapture,
                             previewCapture);
+
+                    camera.getCameraInfo().getCameraState().observe(
+                            (LifecycleOwner) mContext,
+                            new Observer<CameraState>() {
+                                @Override
+                                public void onChanged(CameraState cameraState) {
+                                    if (cameraState.getType() == CameraState.Type.OPEN) {
+                                        Log.i(TAG, "Camera device is actually ready for use.");
+                                    }
+                                }
+                            });
 
                 } catch (Exception e) {
                     Log.e(TAG, "CameraProvider Use case binding failed", e);
