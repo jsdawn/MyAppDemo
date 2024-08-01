@@ -13,5 +13,8 @@
         <item
             android:id="@+id/nav_audio_monitor"
             android:title="音量监测" />
+        <item
+            android:id="@+id/nav_serial"
+            android:title="串口中心" />
     </group>
 </menu>

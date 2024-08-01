@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragment_navigation"
-    app:startDestination="@id/recorderCamera">
+    app:startDestination="@id/welcomeFragment">
 
     <fragment
         android:id="@+id/loginFragment"
@@ -34,4 +34,9 @@
         android:name="com.example.myappdemo.ui.recorder.RecorderCamera"
         android:label="recorder_camera"
         tools:layout="@layout/recorder_camera" />
+    <fragment
+        android:id="@+id/serialportCenter"
+        android:name="com.example.myappdemo.ui.serial.SerialportCenter"
+        android:label="fragment_serialport_center"
+        tools:layout="@layout/fragment_serialport_center" />
 </navigation>

@@ -8,9 +8,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+
 import com.october.lib.logger.LogLevel;
 import com.october.lib.logger.LogUtils;
 import com.october.lib.logger.Logger;
@@ -85,6 +87,50 @@ public class MyUtils {
             return false;
         }
         return true;
+    }
+
+    // 是否是模拟器
+    public static boolean isEmulator() {
+        // 指纹信息和型号
+        if (Build.FINGERPRINT.startsWith("generic/sdk_google")
+                || Build.FINGERPRINT.toLowerCase().contains("vbox")
+                || Build.MODEL.contains("google_sdk")
+                || Build.MODEL.contains("Emulator")
+                || Build.MODEL.contains("Android SDK built for x86")) {
+
+            // Log.d(TAG, Build.FINGERPRINT + ":" + Build.MODEL);
+            return true;
+        }
+        // 其他false
+        return false;
+    }
+
+    /**
+     * 异或校验
+     *
+     * @param data 十六进制串
+     * @return checkData  十六进制串
+     */
+    public static String checkXor(String data) {
+        int checkData = 0;
+        for (int i = 0; i < data.length(); i = i + 2) {
+            //将十六进制字符串转成十进制
+            int start = Integer.parseInt(data.substring(i, i + 2), 16);
+            //进行异或运算
+            checkData = start ^ checkData;
+        }
+        return integerToHexString(checkData);
+    }
+
+    /**
+     * 将十进制整数转为十六进制数，并补位
+     */
+    public static String integerToHexString(int s) {
+        String ss = Integer.toHexString(s);
+        if (ss.length() % 2 != 0) {
+            ss = "0" + ss;//0F格式
+        }
+        return ss.toUpperCase();
     }
 
 

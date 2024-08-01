@@ -65,7 +65,7 @@ public class RecorderCamera extends Fragment {
     }
 
     private void startCamera() {
-        cameraXController = new CameraXController(getActivity());
+        cameraXController = new CameraXController(getContext());
         cameraXController.setupCamera(viewFinder.getSurfaceProvider());
     }
 

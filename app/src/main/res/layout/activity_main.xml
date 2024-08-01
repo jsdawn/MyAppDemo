@@ -29,6 +29,7 @@
         </Toolbar>
 
         <!--  navigation fragment host -->
+        <!--  fragment 承载位置  -->
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragment_host_view"
             android:name="androidx.navigation.fragment.NavHostFragment"
