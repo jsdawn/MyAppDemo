@@ -11,6 +11,9 @@
             android:id="@+id/nav_audio"
             android:title="音频录制" />
         <item
+            android:id="@+id/nav_camera"
+            android:title="相机相关" />
+        <item
             android:id="@+id/nav_audio_monitor"
             android:title="音量监测" />
         <item

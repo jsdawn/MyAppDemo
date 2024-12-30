@@ -6,8 +6,13 @@
     android:layout_height="match_parent"
     tools:context=".ui.recorder.RecorderCamera">
 
-    <androidx.camera.view.PreviewView
+    <!--<androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />-->
+
+    <com.serenegiant.widget.AspectRatioSurfaceView
+        android:id="@+id/uvcViewFinder"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
@@ -17,7 +22,7 @@
         android:layout_marginBottom="50dp"
         android:gravity="center"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="@+id/viewFinder">
+        app:layout_constraintBottom_toBottomOf="@+id/uvcViewFinder">
 
         <Button
             android:id="@+id/preview_button"

@@ -128,7 +128,10 @@ public class CameraXController {
         if (outFile == null) {
             return;
         }
-        VideoCapture.OutputFileOptions outputFileOptions = new VideoCapture.OutputFileOptions.Builder(outFile).build();
+        VideoCapture.OutputFileOptions outputFileOptions = new VideoCapture
+                .OutputFileOptions
+                .Builder(outFile)
+                .build();
 
         videoCapture.startRecording(
                 outputFileOptions,

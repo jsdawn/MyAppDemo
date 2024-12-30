@@ -18,6 +18,8 @@ import com.example.myappdemo.R;
 import com.example.myappdemo.utils.ICallback;
 import com.example.myappdemo.utils.MyUtils;
 import com.example.myappdemo.widget.CameraXController;
+import com.example.myappdemo.widget.UvcCameraController;
+import com.serenegiant.widget.AspectRatioSurfaceView;
 
 import java.util.Objects;
 
@@ -26,9 +28,12 @@ public class RecorderCamera extends Fragment {
     final String TAG = RecorderCamera.class.getSimpleName();
     View view;
     PreviewView viewFinder;
+    AspectRatioSurfaceView aspectRatioSurfaceView;
     Button videoCaptureButton;
     String[] permissions = CameraXController.PERMISSIONS;
     CameraXController cameraXController;
+
+    UvcCameraController uvcCameraController;
 
 
     @Override
@@ -41,8 +46,10 @@ public class RecorderCamera extends Fragment {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.recorder_camera, container, false);
 
-        viewFinder = view.findViewById(R.id.viewFinder);
-        viewFinder.setScaleType(PreviewView.ScaleType.FIT_CENTER);
+//        viewFinder = view.findViewById(R.id.viewFinder);
+//        viewFinder.setScaleType(PreviewView.ScaleType.FIT_CENTER);
+
+        aspectRatioSurfaceView = view.findViewById(R.id.uvcViewFinder);
 
         // 检查权限
         if (MyUtils.checkPermission(getActivity(), permissions)) {
@@ -65,22 +72,33 @@ public class RecorderCamera extends Fragment {
     }
 
     private void startCamera() {
-        cameraXController = new CameraXController(getContext());
-        cameraXController.setupCamera(viewFinder.getSurfaceProvider());
+//        cameraXController = new CameraXController(getContext());
+//        cameraXController.setupCamera(viewFinder.getSurfaceProvider());
+        uvcCameraController = new UvcCameraController(getContext());
+        uvcCameraController.setupCamera(null);
     }
 
     private void takePhoto() {
-        cameraXController.takePhoto();
+//        cameraXController.takePhoto();
+        uvcCameraController.takePhoto();
     }
 
     private void captureVideo() {
-        if (cameraXController.getRecordingState()) {
-            cameraXController.stopRecording();
-        } else {
+//        if (cameraXController.getRecordingState()) {
+//            cameraXController.stopRecording();
+//        } else {
 //            videoCaptureButton.setText("Stop Capture");
-            cameraXController.startRecording(() -> {
+//            cameraXController.startRecording(() -> {
 //                videoCaptureButton.setText("Start Capture");
-            });
+//            });
+//        }
+
+        if (uvcCameraController.getRecordingState()) {
+            uvcCameraController.stopRecording();
+        } else {
+            videoCaptureButton.setText("Stop Capture");
+            uvcCameraController.startRecording();
+            videoCaptureButton.setText("Start Capture");
         }
 
     }
@@ -109,6 +127,9 @@ public class RecorderCamera extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (cameraXController != null) {
+            cameraXController.releseAll();
+        }
 
     }
 }

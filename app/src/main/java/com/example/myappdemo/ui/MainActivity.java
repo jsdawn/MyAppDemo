@@ -59,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (item.getItemId() == R.id.nav_audio) {
                 navController.navigate(R.id.recorderAudio);
 
+            }else if (item.getItemId() == R.id.nav_camera) {
+                navController.navigate(R.id.recorderCamera);
+
             } else if (item.getItemId() == R.id.nav_audio_monitor) {
                 navController.navigate(R.id.audioMonitor);
 

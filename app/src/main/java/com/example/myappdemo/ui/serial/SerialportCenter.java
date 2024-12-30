@@ -28,7 +28,6 @@ public class SerialportCenter extends Fragment {
     TextView msgView;
     SerialHelper iDcardSerial;
     SerialHelper speakerSerial;
-    Boolean IoFlag = false;
     int currIoValue = 1;
 
     public SerialportCenter() {
