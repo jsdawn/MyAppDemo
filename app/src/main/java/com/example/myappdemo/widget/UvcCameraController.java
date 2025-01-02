@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+import com.herohan.uvcapp.CameraException;
 import com.herohan.uvcapp.CameraHelper;
 import com.herohan.uvcapp.ICameraHelper;
 import com.herohan.uvcapp.ImageCapture;
@@ -34,7 +35,6 @@ public class UvcCameraController {
     List<UsbDevice> devList = new ArrayList<>();
     private UsbDevice mUsbDevice;
     private AspectRatioSurfaceView mCameraViewMain;
-    Boolean isRecording = false;
 
     public UvcCameraController(Context context) {
         mContext = context;
@@ -80,16 +80,15 @@ public class UvcCameraController {
     private final ICameraHelper.StateCallback mStateListener = new ICameraHelper.StateCallback() {
         @Override
         public void onAttach(UsbDevice device) {
-            if (DEBUG)
-                Log.d(TAG, "onAttach: " + "检测到摄像头设备 device:" + device.getProductName());
-            devList.add(device); //把USB设备添加到集合
+            if (DEBUG) Log.d(TAG, "onAttach: 检测到摄像头设备 device: " + device.getProductName());
 //            Log.d("DeviceName", device.getDeviceName());
 //            Log.d("SerialNumber", device.getSerialNumber());
 //            Log.d("ProductName", device.getProductName());
-//            selectDevice(devList.get(0));//设置第一个USB设备
 //            if(device.getProductName().equals("RGB-TS01"))//指定名称连接选择摄像头
-            attachNewDevice(device); //选择设备
-
+            if (mUsbDevice == null) {
+                mUsbDevice = device;
+                mCameraHelper.selectDevice(device); //选择首个设备
+            }
         }
 
         @Override
@@ -141,6 +140,7 @@ public class UvcCameraController {
         public void onDetach(UsbDevice device) {
             if (DEBUG) Log.v(TAG, "onDetach: 检测到摄像头拔出 device: " + device.getProductName());
             if (device.equals(mUsbDevice)) {
+                Log.e("等于当前摄像头", mUsbDevice.getProductName());
                 mUsbDevice = null;
             }
         }
@@ -153,30 +153,18 @@ public class UvcCameraController {
             }
         }
 
+        @Override
+        public void onError(UsbDevice device, CameraException e) {
+            if (DEBUG) Log.e(TAG, "onError: " + e.getMessage());
+        }
     };
-
-    private void attachNewDevice(UsbDevice device) {
-        if (devList.isEmpty()) return;
-        //如果第一个集合等于当前设备
-        if (devList.get(0).equals(device)) {
-            mUsbDevice = device;
-        }
-        // 通过UsbDevice对象，尝试获取设备权限
-        if (mCameraHelper != null && mUsbDevice != null) {
-            mCameraHelper.selectDevice(device);
-        }
-    }
 
     // 开始录制
     public void startRecording() {
         if (mCameraHelper == null || mUsbDevice == null) return;
 
-        mCameraHelper.setVideoCaptureConfig(
-                mCameraHelper.getVideoCaptureConfig()
-                        .setAudioCaptureEnable(true) // true:有音频;false:没有音频(默认为true)
-                        .setAudioChannelCount(MediaRecorder.AudioSource.MIC)
-                        .setVideoFrameRate(25)
-                        .setIFrameInterval(1));
+        mCameraHelper.setVideoCaptureConfig(mCameraHelper.getVideoCaptureConfig().setAudioCaptureEnable(true) // true:有音频;false:没有音频(默认为true)
+                .setAudioChannelCount(MediaRecorder.AudioSource.MIC).setVideoFrameRate(25).setIFrameInterval(1));
 
         Log.d(TAG, "startVideo: ");
 
@@ -188,9 +176,7 @@ public class UvcCameraController {
             return;
         }
 
-        VideoCapture.OutputFileOptions build = new VideoCapture.OutputFileOptions
-                .Builder(outFile)
-                .build();
+        VideoCapture.OutputFileOptions build = new VideoCapture.OutputFileOptions.Builder(outFile).build();
 
         mCameraHelper.startRecording(build, new VideoCapture.OnVideoCaptureCallback() {
             @Override
@@ -201,16 +187,13 @@ public class UvcCameraController {
             @Override
             public void onVideoSaved(@NonNull VideoCapture.OutputFileResults outputFileResults) {
                 Log.d(TAG, "视频保存成功: " + outputFileResults.getSavedUri());
-                isRecording = false;
             }
 
             @Override
             public void onError(int videoCaptureError, @NonNull String message, @Nullable Throwable cause) {
-                Log.e(TAG, "出现异常 message: " + message);
-                isRecording = false;
+                Log.e(TAG, "录制时出现异常 message: " + message);
             }
         });
-        isRecording = true;
     }
 
     public void stopRecording() {
@@ -242,7 +225,15 @@ public class UvcCameraController {
 
 
     public boolean getRecordingState() {
-        return isRecording;
+        if (mCameraHelper == null) return false;
+        return mCameraHelper.isRecording();
+    }
+
+    public void releseAll() {
+        if (mCameraHelper == null) return;
+        mCameraHelper.releaseAll();
+        mCameraHelper = null;
+        mUsbDevice = null;
     }
 
     private String getFileDirs() {
@@ -275,8 +266,7 @@ public class UvcCameraController {
         }
 
         try {
-            return File.createTempFile(
-                    filename,  /* 前缀 */
+            return File.createTempFile(filename,  /* 前缀 */
                     ".mp4",         /* 后缀 */
                     storageDir      /* 目录 */);
         } catch (IOException ignored) {

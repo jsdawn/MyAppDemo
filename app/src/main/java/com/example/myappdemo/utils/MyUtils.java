@@ -8,7 +8,12 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.hardware.usb.UsbConstants;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbInterface;
+import android.hardware.usb.UsbManager;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -26,6 +31,7 @@ import com.october.lib.logger.print.LogTxtDefaultPrinter;
 import com.october.lib.logger.print.LogcatDefaultPrinter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class MyUtils {
@@ -134,4 +140,31 @@ public class MyUtils {
     }
 
 
+    public static UsbDevice getUsbCameraDevice(Context context) {
+        UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+        HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+
+        for (UsbDevice device : deviceList.values()) {
+            Log.d("getDeviceName", device.getProductName());
+            // 检查设备是否为摄像头
+            if (isUsbCamera(device)) {
+                Log.e("isUsbCamera", device.getProductName());
+                // 设备是摄像头
+                // 你可以在这里添加你的逻辑，比如打开摄像头等
+                return device;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isUsbCamera(UsbDevice device) {
+        for (int i = 0; i < device.getInterfaceCount(); i++) {
+            UsbInterface usbInterface = device.getInterface(i);
+            // 检查接口是否为视频类接口
+            if (usbInterface.getInterfaceClass() == UsbConstants.USB_CLASS_VIDEO) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

@@ -39,10 +39,7 @@ import java.util.concurrent.Executors;
 public class CameraXController {
     final String TAG = CameraXController.class.getSimpleName();
     Context mContext;
-    public final static String[] PERMISSIONS = new String[]{
-            Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    public final static String[] PERMISSIONS = new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE};
     ExecutorService cameraExecutor;
     Preview previewCapture;
     ImageCapture imageCapture;
@@ -68,23 +65,18 @@ public class CameraXController {
 
                 // 获取preview配置，并关联view
                 previewCapture = new Preview.Builder().build();
-                previewCapture.setSurfaceProvider(surfaceProvider);
+                if (surfaceProvider != null) {
+                    previewCapture.setSurfaceProvider(surfaceProvider);
+                }
 
                 // 获取imageCapture配置
                 imageCapture = new ImageCapture.Builder().build();
 
                 // 获取videoCapture
-                videoCapture = new VideoCapture.Builder()
-                        .setAudioChannelCount(MediaRecorder.AudioSource.MIC)
-                        .setBitRate(3 * 1024 * 1024)
-                        .setVideoFrameRate(30)
-                        .build();
+                videoCapture = new VideoCapture.Builder().setAudioChannelCount(MediaRecorder.AudioSource.MIC).setBitRate(3 * 1024 * 1024).setVideoFrameRate(30).build();
 
                 // 获取相机镜头
-                CameraSelector cameraSelector = new CameraSelector
-                        .Builder()
-                        .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
-                        .build();
+                CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_FRONT).build();
 
 
                 try {
@@ -97,16 +89,14 @@ public class CameraXController {
                             videoCapture,
                             previewCapture);
 
-                    camera.getCameraInfo().getCameraState().observe(
-                            (LifecycleOwner) mContext,
-                            new Observer<CameraState>() {
-                                @Override
-                                public void onChanged(CameraState cameraState) {
-                                    if (cameraState.getType() == CameraState.Type.OPEN) {
-                                        Log.i(TAG, "Camera device is actually ready for use.");
-                                    }
-                                }
-                            });
+                    camera.getCameraInfo().getCameraState().observe((LifecycleOwner) mContext, new Observer<CameraState>() {
+                        @Override
+                        public void onChanged(CameraState cameraState) {
+                            if (cameraState.getType() == CameraState.Type.OPEN) {
+                                Log.i(TAG, "Camera device is actually ready for use.");
+                            }
+                        }
+                    });
 
                 } catch (Exception e) {
                     Log.e(TAG, "CameraProvider Use case binding failed", e);
@@ -128,28 +118,22 @@ public class CameraXController {
         if (outFile == null) {
             return;
         }
-        VideoCapture.OutputFileOptions outputFileOptions = new VideoCapture
-                .OutputFileOptions
-                .Builder(outFile)
-                .build();
+        VideoCapture.OutputFileOptions outputFileOptions = new VideoCapture.OutputFileOptions.Builder(outFile).build();
 
-        videoCapture.startRecording(
-                outputFileOptions,
-                cameraExecutor,
-                new VideoCapture.OnVideoSavedCallback() {
-                    @Override
-                    public void onVideoSaved(@NonNull VideoCapture.OutputFileResults outputFileResults) {
-                        Log.d(TAG, "视频保存成功: " + outputFileResults.getSavedUri());
-                        isRecording = false;
-                        callback.call();
-                    }
+        videoCapture.startRecording(outputFileOptions, cameraExecutor, new VideoCapture.OnVideoSavedCallback() {
+            @Override
+            public void onVideoSaved(@NonNull VideoCapture.OutputFileResults outputFileResults) {
+                Log.d(TAG, "视频保存成功: " + outputFileResults.getSavedUri());
+                isRecording = false;
+                callback.call();
+            }
 
-                    @Override
-                    public void onError(int videoCaptureError, @NonNull String message, @Nullable Throwable cause) {
-                        Log.e(TAG, "出现异常 message: " + message);
-                        isRecording = false;
-                    }
-                });
+            @Override
+            public void onError(int videoCaptureError, @NonNull String message, @Nullable Throwable cause) {
+                Log.e(TAG, "出现异常 message: " + message);
+                isRecording = false;
+            }
+        });
 
         isRecording = true;
     }
@@ -176,21 +160,19 @@ public class CameraXController {
         }
         ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(outFile).build();
 
-        imageCapture.takePicture(outputFileOptions,
-                cameraExecutor,
-                new ImageCapture.OnImageSavedCallback() {
-                    @Override
-                    public void onImageSaved(ImageCapture.OutputFileResults output) {
-                        String msg = "Photo capture succeeded: " + output.getSavedUri();
-                        Log.d(TAG, msg);
+        imageCapture.takePicture(outputFileOptions, cameraExecutor, new ImageCapture.OnImageSavedCallback() {
+            @Override
+            public void onImageSaved(ImageCapture.OutputFileResults output) {
+                String msg = "Photo capture succeeded: " + output.getSavedUri();
+                Log.d(TAG, msg);
 
-                    }
+            }
 
-                    @Override
-                    public void onError(ImageCaptureException error) {
-                        Log.e(TAG, "Photo capture failed: " + error.getMessage(), error);
-                    }
-                });
+            @Override
+            public void onError(ImageCaptureException error) {
+                Log.e(TAG, "Photo capture failed: " + error.getMessage(), error);
+            }
+        });
     }
 
     public void releseAll() {
@@ -212,8 +194,7 @@ public class CameraXController {
         String filename = "JPEG_" + timeStamp + "_";
         File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         try {
-            return File.createTempFile(
-                    filename,  /* 前缀 */
+            return File.createTempFile(filename,  /* 前缀 */
                     ".jpg",         /* 后缀 */
                     storageDir      /* 目录 */);
 
@@ -244,8 +225,7 @@ public class CameraXController {
         }
 
         try {
-            return File.createTempFile(
-                    filename,  /* 前缀 */
+            return File.createTempFile(filename,  /* 前缀 */
                     ".mp4",         /* 后缀 */
                     storageDir      /* 目录 */);
         } catch (IOException ignored) {
