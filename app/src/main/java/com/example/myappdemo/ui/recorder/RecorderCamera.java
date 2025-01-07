@@ -1,7 +1,13 @@
 package com.example.myappdemo.ui.recorder;
 
 import android.annotation.SuppressLint;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -37,12 +43,36 @@ public class RecorderCamera extends Fragment {
     CameraXController cameraXController;
 
     UvcCameraController uvcCameraController;
+    String ACTION_USB_PERMISSION;
 
+    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Objects.equals(intent.getAction(), ACTION_USB_PERMISSION)) {
+                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                if (device != null && intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                    startUvcCamera();
+                } else {
+                    String str = device != null ? device.getProductName() : "";
+                    Log.e(TAG, "device not permission, device info:" + str);
+                }
+            }
+        }
+    };
+
+    private void registerUsbReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTION_USB_PERMISSION);
+        getContext().registerReceiver(mUsbReceiver, filter);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.e("onCreate", "onCreate");
+
+        ACTION_USB_PERMISSION = getContext().getPackageName() + ".USB_PERMISSION";
+        registerUsbReceiver();
     }
 
     @Override
@@ -73,23 +103,37 @@ public class RecorderCamera extends Fragment {
         return view;
     }
 
+
     private void startCamera() {
+        UsbManager usbManager = (UsbManager) getContext().getSystemService(Context.USB_SERVICE);
         UsbDevice usbDevice = MyUtils.getUsbCameraDevice(getContext());
+
         if (usbDevice != null) {
-            aspectRatioSurfaceView.setVisibility(View.VISIBLE);
-            previewView.setVisibility(View.GONE);
-            uvcCameraController = new UvcCameraController(getContext());
-            uvcCameraController.setupCamera(aspectRatioSurfaceView);
-            Log.e("usbDevice", usbDevice.getProductName());
+            if (usbManager.hasPermission(usbDevice)) {
+                Log.d(TAG, "已获得USB设备权限：" + usbDevice.getProductName());
+                startUvcCamera();
+            } else {
+                // 请求权限
+                Intent intent = new Intent(ACTION_USB_PERMISSION);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(getContext(),
+                        0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                usbManager.requestPermission(usbDevice, pendingIntent);
+            }
+
         } else {
+            Log.d("usbDevice", "没有usb摄像头");
             aspectRatioSurfaceView.setVisibility(View.GONE);
             previewView.setVisibility(View.VISIBLE);
             cameraXController = new CameraXController(getContext());
             cameraXController.setupCamera(previewView.getSurfaceProvider());
-            Log.e("usbDevice", "没有usb摄像头");
         }
+    }
 
-
+    private void startUvcCamera() {
+        aspectRatioSurfaceView.setVisibility(View.VISIBLE);
+        previewView.setVisibility(View.GONE);
+        uvcCameraController = new UvcCameraController(getContext());
+        uvcCameraController.setupCamera(aspectRatioSurfaceView);
     }
 
     private void takePhoto() {
@@ -152,6 +196,7 @@ public class RecorderCamera extends Fragment {
         if (cameraXController != null) {
             cameraXController.releseAll();
         }
+        getContext().unregisterReceiver(mUsbReceiver);
     }
 
     @Override

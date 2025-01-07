@@ -19,16 +19,8 @@
     <!--  适配有相机的设备  -->
     <uses-feature android:name="android.hardware.camera.any" />
     <uses-permission android:name="android.permission.CAMERA" />
-
     <!--  usb  -->
     <uses-feature android:name="android.hardware.usb.host" />
-
-    <uses-permission
-        android:name="android.permission.MANAGE_USB"
-        tools:ignore="ProtectedPermissions" />
-    <uses-permission
-        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
 
 
     <application

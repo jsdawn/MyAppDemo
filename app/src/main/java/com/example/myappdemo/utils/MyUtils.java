@@ -145,12 +145,9 @@ public class MyUtils {
         HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
 
         for (UsbDevice device : deviceList.values()) {
-            Log.d("getDeviceName", device.getProductName());
             // 检查设备是否为摄像头
             if (isUsbCamera(device)) {
-                Log.e("isUsbCamera", device.getProductName());
                 // 设备是摄像头
-                // 你可以在这里添加你的逻辑，比如打开摄像头等
                 return device;
             }
         }
