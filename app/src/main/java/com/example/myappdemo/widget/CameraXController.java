@@ -3,28 +3,30 @@ package com.example.myappdemo.widget;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.media.MediaRecorder;
 import android.os.Environment;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.CameraState;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
-import androidx.camera.core.VideoCapture;
 import androidx.camera.lifecycle.ProcessCameraProvider;
-import androidx.camera.view.PreviewView;
+import androidx.camera.video.FileOutputOptions;
+import androidx.camera.video.PendingRecording;
+import androidx.camera.video.Quality;
+import androidx.camera.video.QualitySelector;
+import androidx.camera.video.Recorder;
+import androidx.camera.video.Recording;
+import androidx.camera.video.VideoCapture;
+import androidx.camera.video.VideoRecordEvent;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 
 import com.example.myappdemo.utils.ICallback;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.october.lib.logger.LogUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,9 +45,11 @@ public class CameraXController {
     ExecutorService cameraExecutor;
     Preview previewCapture;
     ImageCapture imageCapture;
-    VideoCapture videoCapture;
+    VideoCapture<Recorder> videoCapture;
     ProcessCameraProvider cameraProvider;
     Boolean isRecording = false;
+
+    Recording mRecording;
 
     public CameraXController(Context context) {
         mContext = context;
@@ -70,13 +74,20 @@ public class CameraXController {
                 }
 
                 // 获取imageCapture配置
-                imageCapture = new ImageCapture.Builder().build();
+                imageCapture = new ImageCapture.Builder()
+                        .build();
 
-                // 获取videoCapture
-                videoCapture = new VideoCapture.Builder().setAudioChannelCount(MediaRecorder.AudioSource.MIC).setBitRate(3 * 1024 * 1024).setVideoFrameRate(30).build();
+                // 1. 创建Recorder（关键步骤）
+                Recorder recorder = new Recorder.Builder()
+                        .setQualitySelector(QualitySelector.from(Quality.HD))
+                        .build();
+                // 2. 获取videoCapture
+                videoCapture = VideoCapture.withOutput(recorder);
 
                 // 获取相机镜头
-                CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_FRONT).build();
+                CameraSelector cameraSelector = new CameraSelector.Builder()
+                        .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
+                        .build();
 
 
                 try {
@@ -118,24 +129,55 @@ public class CameraXController {
         if (outFile == null) {
             return;
         }
-        VideoCapture.OutputFileOptions outputFileOptions = new VideoCapture.OutputFileOptions.Builder(outFile).build();
 
-        videoCapture.startRecording(outputFileOptions, cameraExecutor, new VideoCapture.OnVideoSavedCallback() {
-            @Override
-            public void onVideoSaved(@NonNull VideoCapture.OutputFileResults outputFileResults) {
-                Log.d(TAG, "视频保存成功: " + outputFileResults.getSavedUri());
-                isRecording = false;
-                callback.call();
-            }
+        FileOutputOptions outputOptions = new FileOutputOptions.Builder(outFile).build();
 
-            @Override
-            public void onError(int videoCaptureError, @NonNull String message, @Nullable Throwable cause) {
-                Log.e(TAG, "出现异常 message: " + message);
+        PendingRecording pendingRecording = videoCapture.getOutput()
+                .prepareRecording(mContext, outputOptions);
+
+//        pendingRecording.withAudioEnabled(); // 启用录制音频（无则不录音）
+
+        mRecording = pendingRecording.start(cameraExecutor, videoRecordEvent -> {
+            if (videoRecordEvent instanceof VideoRecordEvent.Start) {
+                isRecording = true;
+                // 录制开始
+                Log.d(TAG, "录制开始");
+            } else if (videoRecordEvent instanceof VideoRecordEvent.Finalize) {
+                VideoRecordEvent.Finalize event = (VideoRecordEvent.Finalize) videoRecordEvent;
                 isRecording = false;
+                if (!event.hasError()) {
+                    // 录制成功
+                    Log.d(TAG, "录制成功: " + event.getOutputResults().getOutputUri());
+
+                } else {
+                    if (mRecording != null) {
+                        mRecording.close();
+                        mRecording = null;
+                    }
+                    Log.e(TAG, "录制错误: " + event.getError());
+                }
             }
         });
 
-        isRecording = true;
+
+//        VideoCapture.OutputFileOptions outputFileOptions = new VideoCapture.OutputFileOptions.Builder(outFile).build();
+//
+//        videoCapture.startRecording(outputFileOptions, cameraExecutor, new VideoCapture.OnVideoSavedCallback() {
+//            @Override
+//            public void onVideoSaved(@NonNull VideoCapture.OutputFileResults outputFileResults) {
+//                Log.d(TAG, "视频保存成功: " + outputFileResults.getSavedUri());
+//                isRecording = false;
+//                callback.call();
+//            }
+//
+//            @Override
+//            public void onError(int videoCaptureError, @NonNull String message, @Nullable Throwable cause) {
+//                Log.e(TAG, "出现异常 message: " + message);
+//                isRecording = false;
+//            }
+//        });
+//
+//        isRecording = true;
     }
 
     public boolean getRecordingState() {
@@ -143,10 +185,11 @@ public class CameraXController {
     }
 
     public void stopRecording() {
-        if (videoCapture == null) {
+        if (videoCapture == null || mRecording == null) {
             return;
         }
-        videoCapture.stopRecording();
+//        videoCapture.stopRecording();
+        mRecording.stop();
     }
 
     public void takePhoto() {
@@ -176,8 +219,9 @@ public class CameraXController {
     }
 
     public void releseAll() {
-        if (videoCapture != null) {
-            videoCapture.stopRecording();
+        if (videoCapture != null && mRecording != null) {
+//            videoCapture.stopRecording();
+            mRecording.stop();
         }
         if (cameraExecutor != null) {
             cameraExecutor.shutdown();

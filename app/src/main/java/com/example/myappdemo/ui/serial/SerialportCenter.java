@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,8 +28,11 @@ public class SerialportCenter extends Fragment {
     Button speakerCloseBtn;
     TextView msgView;
     SerialHelper iDcardSerial;
-    SerialHelper speakerSerial;
+    SerialHelper controlSerial;
     int currIoValue = 1;
+
+    private Handler handler = new Handler();
+    private Runnable runnable;
 
     public SerialportCenter() {
         // Required empty public constructor
@@ -47,13 +51,15 @@ public class SerialportCenter extends Fragment {
 
         bindView(view);
         initIDcardSerial();
-        initSpeakerSerial();
+        initControlSerial();
         initMicrophone();
 
         return view;
     }
 
     private void bindView(View view) {
+        msgView = view.findViewById(R.id.msg_view);
+
         speakerOpenBtn = view.findViewById(R.id.loudspeaker_open);
         speakerOpenBtn.setOnClickListener(v -> {
             sendCommand("84", "00");
@@ -71,7 +77,20 @@ public class SerialportCenter extends Fragment {
         idcardCloseBtn.setOnClickListener(v -> {
             iDcardSerial.close();
         });
-        msgView = view.findViewById(R.id.msg_view);
+
+        Button readDoorBtn = view.findViewById(R.id.read_door);
+        readDoorBtn.setOnClickListener(v -> {
+            // 定义要执行的任务
+            runnable = new Runnable() {
+                @Override
+                public void run() {
+                    sendCommand("86", "01"); // 查询门打开状态 A58601015A79-门开
+                    handler.postDelayed(this, 3000);
+                }
+            };
+            // 启动定时器
+            handler.postDelayed(runnable, 3000);
+        });
     }
 
     private void refreshTextView(String msg) {
@@ -96,8 +115,8 @@ public class SerialportCenter extends Fragment {
     }
 
     // 音响功放串口
-    private void initSpeakerSerial() {
-        speakerSerial = new SerialHelper("/dev/ttyXRUSB0", 9600) {
+    private void initControlSerial() {
+        controlSerial = new SerialHelper("/dev/ttyXRUSB0", 9600) {
             @Override
             public void onMsgBack(String hexstr, String decstr) {
                 String helpStr = "A58500005A7A"; // 求助按钮指令
@@ -106,7 +125,7 @@ public class SerialportCenter extends Fragment {
                 }
             }
         };
-        speakerSerial.open();
+        controlSerial.open();
     }
 
     /**
@@ -172,7 +191,8 @@ public class SerialportCenter extends Fragment {
         stringBuffer.append("00");//数据
         stringBuffer.append("5A");//结束符
         stringBuffer.append(MyUtils.checkXor(stringBuffer.toString()));//异或校验
-        speakerSerial.sendHex(stringBuffer.toString());
+        Log.d(TAG, "主机上报：" + stringBuffer);
+        controlSerial.sendHex(stringBuffer.toString());
     }
 
 
@@ -180,5 +200,6 @@ public class SerialportCenter extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy!!");
+        handler.removeCallbacks(runnable);
     }
 }
