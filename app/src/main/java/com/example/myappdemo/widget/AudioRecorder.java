@@ -43,16 +43,17 @@ public class AudioRecorder {
 
         String dateStr = (String) DateFormat.format("yyyy_MM_dd_HH_mm_ss", new Date());
         filename = "audio_" + dateStr;
-        outFile = new File(outDir, filename + "_temp.amr");
+        outFile = new File(outDir, filename + "_temp.m4a");
 
         // 创建一个MediaRecorder对象
         MediaRecorder recorder = new MediaRecorder();
         // 设置音频源为麦克风
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         // 设置音频输出格式
-        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        // AMR_NB 不支持html audio标签；最优解 MPEG_4 + AAC + .m4a组合
+        recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         // 设置音频编码格式
-        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         // 设置输出文件路径
         recorder.setOutputFile(outFile.getAbsolutePath());
 
@@ -110,7 +111,7 @@ public class AudioRecorder {
         mediaRecorder = null;
 
         if (outFile.exists()) {
-            File renameFile = new File(outDir, filename + ".amr");
+            File renameFile = new File(outDir, filename + ".m4a");
             boolean bool = outFile.renameTo(renameFile);
             if (bool) {
                 outFile = renameFile;
