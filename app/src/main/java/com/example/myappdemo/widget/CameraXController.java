@@ -26,6 +26,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 
 import com.example.myappdemo.utils.ICallback;
+import com.example.myappdemo.utils.MyUtils;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
@@ -125,7 +126,9 @@ public class CameraXController {
             return;
         }
 
-        File outFile = createVideoFilename(mContext);
+        String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(new Date());
+        String filename = "MP4" + "_T" + timeStamp + "_N1001";
+        File outFile = MyUtils.createVideoFile(filename + "_temp.mp4", mContext);
         if (outFile == null) {
             return;
         }
@@ -147,8 +150,8 @@ public class CameraXController {
                 isRecording = false;
                 if (!event.hasError()) {
                     // 录制成功
-                    Log.d(TAG, "录制成功: " + event.getOutputResults().getOutputUri());
-
+                    Log.d(TAG, "录制成功: " + event.getOutputResults().getOutputUri().getPath());
+                    MyUtils.renameTempFile(event.getOutputResults().getOutputUri().getPath());
                 } else {
                     if (mRecording != null) {
                         mRecording.close();
@@ -247,40 +250,5 @@ public class CameraXController {
         return null;
     }
 
-    private File createVideoFilename(Context context) {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        String filename = "MP4_" + timeStamp + "_";
-        File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES);
-
-        String usbPath = getUsbExternalPath(context);
-        if (usbPath != null) {
-            // 有u盘则使用u盘文件夹
-            storageDir = new File(usbPath + File.separator + "videoRecorder");
-        }
-
-        if (storageDir == null) {
-            return null;
-        }
-        if (!storageDir.exists()) {
-            boolean bool = storageDir.mkdirs();
-            if (!bool) {
-                return null;
-            }
-        }
-
-        try {
-            return File.createTempFile(filename,  /* 前缀 */
-                    ".mp4",         /* 后缀 */
-                    storageDir      /* 目录 */);
-        } catch (IOException ignored) {
-        }
-        return null;
-    }
-
-    public String getUsbExternalPath(Context context) {
-        File[] paths = ContextCompat.getExternalFilesDirs(context, null);
-        // /storage/00D6-4AAA/Android/data/com.example.xxx/files
-        return paths.length <= 1 ? null : paths[1].getAbsolutePath();
-    }
 
 }

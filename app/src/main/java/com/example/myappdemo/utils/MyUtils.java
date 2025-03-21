@@ -13,6 +13,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
+import android.os.Environment;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -30,6 +31,7 @@ import com.october.lib.logger.print.BaseLogTxtPrinter;
 import com.october.lib.logger.print.LogTxtDefaultPrinter;
 import com.october.lib.logger.print.LogcatDefaultPrinter;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -163,5 +165,74 @@ public class MyUtils {
             }
         }
         return false;
+    }
+
+    /**
+     * 重命名文件，移除文件名中最后一次出现的 "_temp"
+     *
+     * @param filePath 原文件路径
+     * @return 重命名后的路径，不成功则返回原路径
+     */
+    public static String renameTempFile(String filePath) {
+        File oldFile = new File(filePath);
+        if (!oldFile.exists()) {
+            Log.e("MyUtils", "文件不存在: " + filePath);
+            return "";
+        }
+
+        String fileName = oldFile.getName();
+        int lastIndex = fileName.lastIndexOf("_temp");
+        if (lastIndex == -1) {
+            return filePath;
+        }
+
+        // 构建新文件名（去掉最后一次出现的 "_temp"）
+        String newName = fileName.substring(0, lastIndex) + fileName.substring(lastIndex + 5);
+        File newFile = new File(oldFile.getParent(), newName);
+
+        // 执行重命名
+        boolean success = oldFile.renameTo(newFile);
+        if (success) {
+            Log.d("FileUtils", "重命名成功: " + newFile.getAbsolutePath());
+            return newFile.getAbsolutePath();
+        } else {
+            Log.e("FileUtils", "重命名失败，原因: " + (newFile.exists() ? "目标文件已存在" : "未知错误"));
+        }
+        return filePath;
+    }
+
+
+    public static String getUsbExternalPath(Context context) {
+        File[] paths = ContextCompat.getExternalFilesDirs(context, null);
+        // /storage/00D6-4AAA/Android/data/com.example.xxx/files
+        return paths.length <= 1 ? null : paths[1].getAbsolutePath();
+    }
+
+    /**
+     * 创建录制视频的文件
+     *
+     * @param filename 文件名（包含后缀）
+     * @param context
+     * @return file
+     */
+    public static File createVideoFile(String filename, Context context) {
+        File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES);
+        String usbPath = getUsbExternalPath(context);
+        if (usbPath != null) {
+            // 有u盘则使用u盘文件夹
+            storageDir = new File(usbPath + File.separator + "videoRecorder");
+        }
+        if (storageDir == null) return null;
+
+        if (!storageDir.exists()) {
+            boolean bool = storageDir.mkdirs();
+            if (!bool) return null;
+        }
+
+        try {
+            return new File(storageDir, filename);
+        } catch (NullPointerException ignored) {
+        }
+        return null;
     }
 }

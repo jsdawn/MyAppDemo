@@ -9,6 +9,7 @@ import android.text.format.DateFormat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.myappdemo.utils.MyUtils;
 import com.october.lib.logger.LogUtils;
 
 import java.io.File;
@@ -41,8 +42,8 @@ public class AudioRecorder {
             }
         }
 
-        String dateStr = (String) DateFormat.format("yyyy_MM_dd_HH_mm_ss", new Date());
-        filename = "audio_" + dateStr;
+        String dateStr = (String) DateFormat.format("yyyyMMddHHmmss", new Date());
+        filename = "audio" + "_T" + dateStr + "_N1001";
         outFile = new File(outDir, filename + "_temp.m4a");
 
         // 创建一个MediaRecorder对象
@@ -110,13 +111,7 @@ public class AudioRecorder {
         mediaRecorder.release();
         mediaRecorder = null;
 
-        if (outFile.exists()) {
-            File renameFile = new File(outDir, filename + ".m4a");
-            boolean bool = outFile.renameTo(renameFile);
-            if (bool) {
-                outFile = renameFile;
-            }
-        }
+        MyUtils.renameTempFile(outFile.getAbsolutePath());
     }
 
     public void deleteLastFile() {
